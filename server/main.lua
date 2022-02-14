@@ -25,3 +25,16 @@ end
 function Erase(key)
     return X.Erase(key)
 end
+
+--Autosaver every one minute
+Citizen.CreateThread(function()
+    while true do
+        for i,v in pairs(X.Data) do
+            if X.Changed[i] then
+                X.Save(i)
+                X.Changed[i] = false
+            end
+        end
+        Citizen.Wait(60000)
+    end
+end)

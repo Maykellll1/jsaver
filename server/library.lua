@@ -1,5 +1,6 @@
 X = {}
 X.Data = {}
+X.Changed = {}
 
 local function trim(s)
     return (s:gsub("^%s*(.-)%s*$", "%1"))
@@ -17,6 +18,7 @@ X.Create = function(key)
     end
 
     X.Data[key] = {}
+    X.Changed[key] = false
 
     SaveResourceFile(GetCurrentResourceName(), './databases/' .. key .. '.json', json.encode(X.Data[key]), -1)
 
@@ -31,6 +33,7 @@ X.Load = function(key)
     local loadFile = LoadResourceFile(GetCurrentResourceName(), './databases/' .. key .. '.json')
     if loadFile and loadFile ~= "" then
         X.Data[key] = json.decode(loadFile)
+        X.Changed[key] = false
         return X.Data[key]
     end
     print('jsaver: File don`t found: `' .. key .. '`. Try to create it first.')
@@ -51,6 +54,11 @@ X.Save = function(key, data)
         return false
     end
     SaveResourceFile(GetCurrentResourceName(), './databases/' .. key .. '.json', json.encode(X.Data[key]), -1)
+    
+    if X.Changed[key] then
+        X.Changed[key] = false
+    end
+
     return true
 end
 
@@ -73,8 +81,10 @@ X.Set = function(key, data)
 
     if X.Data[key] then
         X.Data[key] = data
+        X.Changed[key] = true
         return true
     end
+
     print('jsaver: Can`t find data with key `' .. key .. '`. How about load info first?')
     return false
 end
@@ -101,6 +111,7 @@ X.Erase = function(key)
     if type(key) ~= 'string' then return false end
     key = trim(key)
 
+    if X.Changed[key] then X.Changed[key] = nil end
     if X.Data[key] then
         X.Data[key] = nil
         SaveResourceFile(GetCurrentResourceName(), './databases/' .. key .. '.json', '', -1)
@@ -112,6 +123,7 @@ X.Erase = function(key)
             return true
         end
     end
+    
     
     return false
 end
